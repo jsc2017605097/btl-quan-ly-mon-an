@@ -57,6 +57,8 @@ export default function App() {
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -174,33 +176,58 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex font-sans text-[#1A1A1A]">
+    <div className="min-h-screen bg-[#F8F9FA] flex font-sans text-[#1A1A1A] relative overflow-hidden">
+      {/* Sidebar Overlay for Mobile */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-6 flex items-center gap-3 border-bottom border-gray-100">
-          <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-            <ChefHat size={24} />
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out
+        lg:translate-x-0 lg:static lg:inset-auto
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-6 flex items-center justify-between border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+              <ChefHat size={24} />
+            </div>
+            <h1 className="font-bold text-xl tracking-tight text-emerald-900">MenuMaster</h1>
           </div>
-          <h1 className="font-bold text-xl tracking-tight text-emerald-900">MenuMaster</h1>
+          <button 
+            onClick={() => setIsSidebarOpen(false)}
+            className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-500"
+          >
+            <X size={20} />
+          </button>
         </div>
         
         <nav className="flex-1 p-4 space-y-2">
           <button 
-            onClick={() => setView('dashboard')}
+            onClick={() => { setView('dashboard'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'dashboard' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             <LayoutDashboard size={20} />
             Tổng quan
           </button>
           <button 
-            onClick={() => setView('dishes')}
+            onClick={() => { setView('dishes'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'dishes' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             <Utensils size={20} />
             Món ăn
           </button>
           <button 
-            onClick={() => setView('categories')}
+            onClick={() => { setView('categories'); setIsSidebarOpen(false); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${view === 'categories' ? 'bg-emerald-50 text-emerald-700 font-semibold' : 'text-gray-500 hover:bg-gray-50'}`}
           >
             <Layers size={20} />
@@ -218,42 +245,52 @@ export default function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col h-screen overflow-hidden w-full">
         {/* Header */}
-        <header className="h-20 bg-white border-b border-gray-200 px-8 flex items-center justify-between shrink-0">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">
-              {view === 'dashboard' && 'Bảng điều khiển'}
-              {view === 'dishes' && 'Quản lý món ăn'}
-              {view === 'categories' && 'Quản lý loại món'}
-            </h2>
-            <p className="text-sm text-gray-500">Chào mừng bạn quay trở lại hệ thống quản lý.</p>
+        <header className="h-20 bg-white border-b border-gray-200 px-4 lg:px-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 hover:bg-gray-100 rounded-lg text-gray-500"
+            >
+              <LayoutDashboard size={24} />
+            </button>
+            <div>
+              <h2 className="text-lg lg:text-2xl font-bold text-gray-900 line-clamp-1">
+                {view === 'dashboard' && 'Bảng điều khiển'}
+                {view === 'dishes' && 'Quản lý món ăn'}
+                {view === 'categories' && 'Quản lý loại món'}
+              </h2>
+              <p className="text-xs lg:text-sm text-gray-500 hidden sm:block">Chào mừng bạn quay trở lại hệ thống quản lý.</p>
+            </div>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 lg:gap-4">
             {view === 'dishes' && (
               <button 
                 onClick={() => { setEditingDish(null); setIsDishModalOpen(true); }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-emerald-100"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-emerald-100 text-sm lg:text-base"
               >
-                <Plus size={20} />
-                Thêm món ăn
+                <Plus size={18} className="lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Thêm món ăn</span>
+                <span className="sm:hidden">Thêm</span>
               </button>
             )}
             {view === 'categories' && (
               <button 
                 onClick={() => { setEditingCategory(null); setIsCategoryModalOpen(true); }}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-emerald-100"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 lg:px-5 py-2 lg:py-2.5 rounded-xl flex items-center gap-2 font-semibold transition-all shadow-lg shadow-emerald-100 text-sm lg:text-base"
               >
-                <Plus size={20} />
-                Thêm loại món
+                <Plus size={18} className="lg:w-5 lg:h-5" />
+                <span className="hidden sm:inline">Thêm loại món</span>
+                <span className="sm:hidden">Thêm</span>
               </button>
             )}
           </div>
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-8">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           <AnimatePresence mode="wait">
             {view === 'dashboard' && (
               <motion.div 
@@ -287,10 +324,10 @@ export default function App() {
                   </h3>
                 </div>
 
-                <div className="md:col-span-3 bg-white p-8 rounded-3xl border border-gray-200 shadow-sm mt-4">
+                <div className="md:col-span-3 bg-white p-4 lg:p-8 rounded-3xl border border-gray-200 shadow-sm mt-4 overflow-hidden">
                   <h4 className="text-lg font-bold mb-6">Món ăn mới nhất</h4>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
+                  <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
+                    <table className="w-full min-w-[600px]">
                       <thead>
                         <tr className="text-left text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                           <th className="pb-4">Món ăn</th>
@@ -329,8 +366,8 @@ export default function App() {
                 className="space-y-6"
               >
                 {/* Filters */}
-                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-4">
-                  <div className="flex-1 min-w-[240px] relative">
+                <div className="bg-white p-4 lg:p-6 rounded-2xl border border-gray-200 shadow-sm flex flex-col lg:flex-row lg:items-center gap-4">
+                  <div className="flex-1 relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input 
                       type="text" 
@@ -341,14 +378,17 @@ export default function App() {
                     />
                   </div>
                   
-                  <div className="flex items-center gap-3">
-                    <Filter size={18} className="text-gray-400" />
+                  <div className="grid grid-cols-2 sm:flex items-center gap-2 lg:gap-3">
+                    <div className="col-span-2 sm:col-auto flex items-center gap-2 text-gray-400 lg:hidden mb-1">
+                      <Filter size={16} />
+                      <span className="text-xs font-bold uppercase">Bộ lọc</span>
+                    </div>
                     <select 
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
-                      className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      className="bg-gray-50 border border-gray-100 rounded-xl px-3 lg:px-4 py-2.5 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 w-full"
                     >
-                      <option value="">Tất cả loại món</option>
+                      <option value="">Tất cả loại</option>
                       {categories.map(c => (
                         <option key={c.id} value={c.id}>{c.name}</option>
                       ))}
@@ -357,7 +397,7 @@ export default function App() {
                     <select 
                       value={maxPrice}
                       onChange={(e) => setMaxPrice(e.target.value)}
-                      className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      className="bg-gray-50 border border-gray-100 rounded-xl px-3 lg:px-4 py-2.5 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 w-full"
                     >
                       <option value="">Mọi mức giá</option>
                       <option value="50000">Dưới 50k</option>
@@ -368,7 +408,7 @@ export default function App() {
                     <select 
                       value={maxTime}
                       onChange={(e) => setMaxTime(e.target.value)}
-                      className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                      className="bg-gray-50 border border-gray-100 rounded-xl px-3 lg:px-4 py-2.5 text-xs lg:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 w-full sm:col-span-2"
                     >
                       <option value="">Mọi thời gian</option>
                       <option value="10">Dưới 10 phút</option>
